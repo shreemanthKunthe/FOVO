@@ -49,7 +49,9 @@ export class AudioEngine {
       return true;
     }
     const Ctor: AnyAudioContext | undefined =
-      window.AudioContext ?? (window as unknown as { webkitAudioContext?: AnyAudioContext }).webkitAudioContext;
+      typeof window !== 'undefined'
+        ? (window.AudioContext ?? (window as unknown as { webkitAudioContext?: AnyAudioContext }).webkitAudioContext)
+        : undefined;
     if (!Ctor) return false;
     const ctx = (this.ctx = new Ctor({ latencyHint: 'interactive' }));
     ctx.onstatechange = () => this.onState?.(ctx.state);

@@ -5,6 +5,10 @@ import { createMapTransform } from '../src/domain/coords';
 import { computeCameraPose, viewingStats } from '../src/domain/viewing';
 import { neighbourSeat } from '../src/domain/navigation';
 import { mockAvailability } from '../src/data/mockAvailability';
+import { cinemas, getCinema, getCinemasByCity, getShowtimesForCinema, SUPPORTED_CITIES } from '../src/data/cinemas';
+import { getMovie, getPrimaryTrailer, registerMovies, type Movie } from '../src/data/movies';
+import { deduplicateMovies, DISCOVERY_CACHE_TTL_MS, isCacheStale } from '../src/services/tmdbClient';
+import { trailer, useTrailer } from '../src/features/trailer/TrailerController';
 
 const seats = generateSeats(cfg);
 const byId = (id: string) => seats.find((s) => s.id === id)!;
@@ -78,7 +82,6 @@ describe('second auditorium is data driven', () => {
   it('has centre aisles and a different seat count', () => {
     const g = generateSeats(grandAuditorium);
     expect(g.length).toBe(12 + 2 * 16 + 7 * 16 + 3 * 18);
-    // Prime rows have an aisle after seat 9.
     const a9 = g.find((s) => s.id === 'A-9')!;
     const a10 = g.find((s) => s.id === 'A-10')!;
     const pitch = grandAuditorium.sections.prime.seatPitch;
@@ -95,9 +98,8 @@ describe('first-person camera', () => {
   });
 
   it('turns toward the screen from side seats', () => {
-    // Row C is a 17-seat Prime row; seat 9 is the centre.
-    expect(computeCameraPose(byId('C-1')).yaw).toBeLessThan(0); // left seat turns right
-    expect(computeCameraPose(byId('C-17')).yaw).toBeGreaterThan(0); // right seat turns left
+    expect(computeCameraPose(byId('C-1')).yaw).toBeLessThan(0);
+    expect(computeCameraPose(byId('C-17')).yaw).toBeGreaterThan(0);
     expect(Math.abs(computeCameraPose(byId('C-9')).yaw)).toBeLessThan(0.02);
   });
 
@@ -126,5 +128,130 @@ describe('seat navigation', () => {
       if (dir === 'front') expect(n.world.position[2]).toBeLessThan(cur.world.position[2]);
       if (dir === 'back') expect(n.world.position[2]).toBeGreaterThan(cur.world.position[2]);
     }
+  });
+});
+
+describe('Hubballi–Dharwad cinema directory & dynamic discovery engine', () => {
+  it('sets Hubballi as the primary pilot market and lists Cinépolis Urban Oasis Mall first', () => {
+    expect(SUPPORTED_CITIES[0].id).toBe('hubballi');
+    expect(SUPPORTED_CITIES[0].isPrimaryMarket).toBe(true);
+    const hubballiCinemas = getCinemasByCity('hubballi');
+    expect(hubballiCinemas.length).toBeGreaterThanOrEqual(4);
+    const cinepolis = getCinema('cinepolis-urban-oasis-hbl');
+    expect(cinepolis).toBeDefined();
+    expect(cinepolis?.city).toBe('Hubballi');
+    expect(cinepolis?.auditoriumCount).toBe(5);
+    expect(cinepolis?.verificationTier).toBe('MANUALLY_VERIFIED');
+    expect(cinepolis?.auditorium.verificationStatus).toBe('ESTIMATED_PROTOTYPE_LAYOUT');
+  });
+
+  it('registers, deduplicates, and resolves official trailers for dynamically discovered Indian releases', () => {
+    const sampleA: Movie = {
+      id: 'tmdb-112233',
+      tmdbId: 112233,
+      title: 'Kantara: Chapter 1',
+      originalTitle: 'ಕಾಂತಾರ: ಅಧ್ಯಾಯ 1',
+      genre: 'Action · Drama',
+      genres: ['Action', 'Drama'],
+      runtime: '2h 38m',
+      runtimeMinutes: 158,
+      rating: 'UA',
+      language: 'Kannada',
+      originalLanguage: 'kn',
+      releaseDate: '2025-10-02',
+      releaseStatus: 'Now Showing',
+      synopsis: 'Prequel exploring the origins of the ancestral deity in Kadambas era.',
+      posterUrl: 'https://image.tmdb.org/t/p/w500/sample.jpg',
+      backdropUrl: null,
+      accent: '#1B2430',
+      cast: [{ id: 1, name: 'Rishab Shetty', character: 'Shiva' }],
+      trailers: [
+        {
+          id: 'yt-kn',
+          movieId: 'tmdb-112233',
+          title: 'Official Kannada Trailer',
+          provider: 'YouTube',
+          videoId: 'TMQUFhWm8C0',
+          language: 'Kannada',
+          type: 'Trailer',
+          official: true,
+          embeddable: true,
+        },
+        {
+          id: 'yt-hi',
+          movieId: 'tmdb-112233',
+          title: 'Official Hindi Trailer',
+          provider: 'YouTube',
+          videoId: '8mrVmf239GU',
+          language: 'Hindi',
+          type: 'Trailer',
+          official: true,
+          embeddable: true,
+        },
+      ],
+      trailerUrl: '',
+      dataSource: 'TMDB_LIVE',
+    };
+
+    const deduped = deduplicateMovies([sampleA, { ...sampleA }]);
+    expect(deduped).toHaveLength(1);
+
+    registerMovies(deduped);
+    const lookedUp = getMovie('tmdb-112233');
+    expect(lookedUp?.title).toBe('Kantara: Chapter 1');
+    expect(getPrimaryTrailer(lookedUp, 'Kannada')?.videoId).toBe('TMQUFhWm8C0');
+    expect(getPrimaryTrailer(lookedUp, 'Hindi')?.videoId).toBe('8mrVmf239GU');
+  });
+
+  it('enforces a 3-hour cache TTL for discovery freshness', () => {
+    const now = Date.now();
+    expect(DISCOVERY_CACHE_TTL_MS).toBe(3 * 60 * 60 * 1000);
+    expect(isCacheStale(null, now)).toBe(true);
+    expect(isCacheStale(now - 30 * 60 * 1000, now)).toBe(false);
+    expect(isCacheStale(now - 4 * 60 * 60 * 1000, now)).toBe(true);
+  });
+
+  it('configures TrailerController for 3D screen playback without any obsolete MP4 upload method', () => {
+    expect('loadFile' in trailer).toBe(false);
+    trailer.enter(
+      {
+        id: 'tmdb-112233',
+        title: 'Kantara: Chapter 1',
+        accent: '#1B2430',
+        trailerMeta: {
+          id: 'yt-kn',
+          movieId: 'tmdb-112233',
+          title: 'Official Kannada Trailer',
+          provider: 'YouTube',
+          videoId: 'TMQUFhWm8C0',
+          language: 'Kannada',
+          type: 'Trailer',
+          official: true,
+          embeddable: true,
+        },
+      },
+      { width: 11, centerY: 3.9 },
+    );
+    expect(useTrailer.getState().source).toBe('youtube');
+    expect(useTrailer.getState().videoId).toBe('TMQUFhWm8C0');
+
+    trailer.setVolume(0.5);
+    expect(useTrailer.getState().volume).toBe(0.5);
+    expect(useTrailer.getState().muted).toBe(false);
+
+    trailer.setMuted(true);
+    expect(useTrailer.getState().muted).toBe(true);
+
+    trailer.leave();
+    expect(useTrailer.getState().status).toBe('idle');
+    expect(useTrailer.getState().source).toBe('none');
+  });
+
+  it('generates provider-independent showtime records labeled as DEMO_DATA with external handoff URLs', () => {
+    const cinepolis = cinemas[0];
+    const records = getShowtimesForCinema(cinepolis, 'tmdb-112233', '2026-11-12', 'Kannada');
+    expect(records.length).toBeGreaterThan(0);
+    expect(records[0].verificationTier).toBe('DEMO_DATA');
+    expect(records[0].externalBookingUrl).toContain('https://');
   });
 });

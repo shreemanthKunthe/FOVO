@@ -1,69 +1,89 @@
-export interface Movie {
-  id: string;
-  title: string;
-  genre: string;
-  runtime: string;
-  rating: string;
-  language: string;
-  synopsis: string;
-  /** Poster block colour (flat, no imagery). */
-  accent: string;
-  /**
-   * Trailer video file. Drop a licensed or self-produced .mp4/.webm at this path
-   * (served from /public) or any CORS-enabled direct video URL.
-   * Third-party page links (YouTube, Vimeo) cannot be used as WebGL textures.
-   * If the file is missing the 3D screen shows a clearly labelled placeholder.
-   */
-  trailerUrl: string;
+import type { TrailerMetadata } from '../domain/types';
+
+export type DiscoveryCategory = 'now_showing' | 'new_releases' | 'coming_soon' | 'trending';
+export type ReleaseStatusLabel = 'Now Showing' | 'New Release' | 'Coming Soon' | 'Trending';
+
+export interface CastMember {
+  id: number;
+  name: string;
+  character: string;
 }
 
-/** Fictional placeholder titles; replace with real catalogue data later. */
-export const movies: Movie[] = [
-  {
-    id: 'starfall',
-    title: 'Starfall',
-    genre: 'Sci-fi · Adventure',
-    runtime: '2h 21m',
-    rating: 'UA',
-    language: 'English',
-    synopsis: 'A salvage crew finds a signal inside a collapsing star and has one orbit to decide what to bring home.',
-    accent: '#3b5b86',
-    trailerUrl: '/trailers/starfall.mp4',
-  },
-  {
-    id: 'last-reel',
-    title: 'The Last Reel',
-    genre: 'Drama',
-    runtime: '1h 58m',
-    rating: 'U',
-    language: 'Hindi',
-    synopsis: 'The projectionist of a closing single-screen theatre screens one final, unscheduled film.',
-    accent: '#7a4a3a',
-    trailerUrl: '/trailers/last-reel.mp4',
-  },
-  {
-    id: 'monsoon-express',
-    title: 'Monsoon Express',
-    genre: 'Thriller',
-    runtime: '2h 09m',
-    rating: 'UA',
-    language: 'Hindi · Tamil',
-    synopsis: 'A night train, a stalled signal and eleven passengers who each lied about where they are going.',
-    accent: '#3f6b5c',
-    trailerUrl: '/trailers/monsoon-express.mp4',
-  },
-  {
-    id: 'paper-kingdom',
-    title: 'Paper Kingdom',
-    genre: 'Animation · Family',
-    runtime: '1h 44m',
-    rating: 'U',
-    language: 'English',
-    synopsis: 'Two siblings fold their way into a map that keeps redrawing itself.',
-    accent: '#8a6f2f',
-    trailerUrl: '/trailers/paper-kingdom.mp4',
-  },
-];
+export interface Movie {
+  id: string;
+  /** TMDB numeric movie ID. */
+  tmdbId: number;
+  title: string;
+  originalTitle: string;
+  genre: string;
+  genres: string[];
+  runtime: string;
+  runtimeMinutes: number | null;
+  rating: string;
+  language: string;
+  originalLanguage: string;
+  spokenLanguages?: string[];
+  releaseDate: string;
+  releaseStatus?: ReleaseStatusLabel;
+  synopsis: string;
+  posterUrl: string | null;
+  backdropUrl: string | null;
+  /** Poster fallback surface colour while poster image loads. */
+  accent: string;
+  cast: CastMember[];
+  /** Official associated trailers (YouTube / DirectVideo). */
+  trailers: TrailerMetadata[];
+  /** Optional licensed direct video asset for WebGL VideoTexture projection. */
+  trailerUrl: string;
+  /** Indicates live metadata source. */
+  dataSource: 'TMDB_LIVE' | 'LIVE_INDIAN_CATALOG' | 'CACHED_STALE';
+  lastUpdatedAt?: string;
+}
 
-export const getMovie = (id: string | null) => movies.find((m) => m.id === id) ?? null;
+const runtimeMovies = new Map<string, Movie>();
 
+/**
+ * Registers dynamically fetched movies into the in-memory lookup store.
+ * Deduplicates by movie ID and TMDB ID.
+ */
+export function registerMovies(list: Movie[]): void {
+  for (const m of list) {
+    if (!m || !m.id) continue;
+    runtimeMovies.set(m.id, m);
+    runtimeMovies.set(String(m.tmdbId), m);
+  }
+}
+
+export function getRegisteredMovies(): Movie[] {
+  const unique = new Map<number, Movie>();
+  for (const m of runtimeMovies.values()) {
+    if (!unique.has(m.tmdbId)) {
+      unique.set(m.tmdbId, m);
+    }
+  }
+  return Array.from(unique.values());
+}
+
+export function getMovie(id: string | null): Movie | null {
+  if (!id) return null;
+  const direct = runtimeMovies.get(id) ?? runtimeMovies.get(id.replace(/^tmdb-/, ''));
+  if (direct) return direct;
+  // If requested before discovery finishes loading, return the first registered movie if any
+  const all = getRegisteredMovies();
+  return all[0] ?? null;
+}
+
+export function getPrimaryTrailer(movie: Movie | null | undefined, preferredLanguage?: string): TrailerMetadata | null {
+  if (!movie || !movie.trailers || movie.trailers.length === 0) return null;
+  const embeddable = movie.trailers.filter((t) => t.embeddable !== false && Boolean(t.videoId || t.directVideoUrl));
+  if (embeddable.length === 0) return null;
+
+  if (preferredLanguage) {
+    const match = embeddable.find((t) =>
+      t.language.toLowerCase().includes(preferredLanguage.toLowerCase()),
+    );
+    if (match) return match;
+  }
+  const officialTrailer = embeddable.find((t) => t.type === 'Trailer' && t.official);
+  return officialTrailer ?? embeddable[0];
+}

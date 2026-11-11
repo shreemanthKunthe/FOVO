@@ -1,0 +1,1444 @@
+/* ============================================================================
+   FOVO — DARK EDITORIAL BRAND LANDING PAGE
+   Palette:
+     Primary background:   #0B0B0D
+     Secondary background: #141416
+     Elevated surfaces:    #1B1B1F
+     Primary text:         #F5F5F2
+     Secondary text:       #A4A4A7
+     Primary accent:       #E5B84B (Theatre-Light Golden Yellow)
+     Secondary accent:     #FF813D
+     Subtle borders:       #303034
+   Spacing: 8px base system
+============================================================================ */
+
+.fovo-page {
+  --fovo-bg: var(--bg-primary, #0B0B0D);
+  --fovo-bg-sec: var(--bg-secondary, #141416);
+  --fovo-elevated: var(--bg-elevated, #1B1B1F);
+  --fovo-ink: var(--text-primary, #F5F5F2);
+  --fovo-muted: var(--text-secondary, #A4A4A7);
+  --fovo-lime: var(--accent-primary, #E5B84B);
+  --fovo-orange: var(--accent-secondary, #FF813D);
+  --fovo-border: var(--border-subtle, #303034);
+  --fovo-grid: rgba(48, 48, 52, 0.55);
+  --fovo-font-display: var(--font-sans, 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  --fovo-font-sans: var(--font-sans, 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  --scroll-p: 0;
+  --scroll-y: 0px;
+  --mx: 0;
+  --my: 0;
+
+  background: var(--fovo-bg);
+  color: var(--fovo-ink);
+  font-family: var(--fovo-font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Top scroll progress bar */
+.fovo-scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 60;
+  background: var(--fovo-lime);
+  transform-origin: 0 50%;
+  transform: scaleX(var(--scroll-p, 0));
+  transition: transform 0.08s linear;
+  pointer-events: none;
+}
+
+/* Keyframe library */
+@keyframes fovoLineMaskUp {
+  0% {
+    opacity: 0;
+    transform: translateY(108%) rotate(1.5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes fovoFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fovoFloatSlow {
+  0%, 100% {
+    transform: translate3d(calc(var(--mx, 0) * -10px), calc(var(--my, 0) * -8px), 0) rotate(-3deg);
+  }
+  50% {
+    transform: translate3d(calc(var(--mx, 0) * -10px), calc(var(--my, 0) * -8px - 9px), 0) rotate(-1deg);
+  }
+}
+
+@keyframes fovoFloatReverse {
+  0%, 100% {
+    transform: translate3d(calc(var(--mx, 0) * 12px), calc(var(--my, 0) * 10px), 0) rotate(2deg);
+  }
+  50% {
+    transform: translate3d(calc(var(--mx, 0) * 12px), calc(var(--my, 0) * 10px + 8px), 0) rotate(4.5deg);
+  }
+}
+
+@keyframes fovoSpinSlow {
+  0% {
+    transform: translate3d(calc(var(--mx, 0) * -16px), calc(var(--my, 0) * -12px), 0) rotate(0deg);
+  }
+  100% {
+    transform: translate3d(calc(var(--mx, 0) * -16px), calc(var(--my, 0) * -12px), 0) rotate(360deg);
+  }
+}
+
+@keyframes fovoTiltDrift {
+  0%, 100% {
+    transform: translate3d(calc(var(--mx, 0) * 14px), calc(var(--my, 0) * -14px), 0) rotate(14deg) scale(1);
+  }
+  50% {
+    transform: translate3d(calc(var(--mx, 0) * 14px), calc(var(--my, 0) * -14px - 10px), 0) rotate(26deg) scale(1.06);
+  }
+}
+
+@keyframes fovoMarquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes fovoDashFlow {
+  0% {
+    stroke-dashoffset: 36;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fovoPulseRing {
+  0%, 100% {
+    stroke-opacity: 0.28;
+    stroke: #303034;
+  }
+  50% {
+    stroke-opacity: 0.9;
+    stroke: #E5B84B;
+  }
+}
+
+@keyframes fovoHaloPulse {
+  0%, 100% {
+    transform: scale(0.92);
+    opacity: 0.24;
+  }
+  50% {
+    transform: scale(1.24);
+    opacity: 0.45;
+  }
+}
+
+@keyframes fovoScanSweep {
+  0%, 100% {
+    transform: translateY(-28px);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(28px);
+    opacity: 0.85;
+  }
+}
+
+@keyframes fovoBeamFlicker {
+  0%, 100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes fovoHexPulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.07) rotate(4deg);
+  }
+}
+
+/* Ruled dark architectural grid surface */
+.fovo-ruled-grid {
+  background-color: var(--fovo-bg-sec);
+  background-image:
+    linear-gradient(to right, var(--fovo-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--fovo-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.fovo-eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fovo-muted);
+}
+
+.fovo-mono {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--fovo-muted);
+}
+
+.fovo-section-title {
+  font-family: var(--fovo-font-display);
+  font-size: clamp(2.5rem, 5.4vw, 4.75rem);
+  font-weight: 700;
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  color: var(--fovo-ink);
+}
+
+/* Reveal motion */
+.fovo-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fovo-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Buttons */
+.fovo-btn-lime {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  border: 1px solid var(--fovo-lime);
+  border-radius: 6px;
+  padding: 13px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+.fovo-btn-lime:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+}
+.fovo-btn-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0B0B0D;
+}
+
+.fovo-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--fovo-elevated);
+  color: var(--fovo-ink);
+  border: 1px solid var(--fovo-border);
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+}
+.fovo-btn-outline:hover {
+  border-color: var(--fovo-lime);
+  transform: translateY(-2px);
+}
+
+/* ============================================================================
+   HEADER
+============================================================================ */
+.fovo-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: rgba(11, 11, 13, 0.88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--fovo-border);
+}
+
+.fovo-wordmark {
+  font-family: var(--fovo-font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  color: var(--fovo-ink);
+  text-decoration: none;
+}
+
+.fovo-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.fovo-nav button {
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fovo-muted);
+  transition: color 0.18s ease;
+}
+.fovo-nav button:hover {
+  color: var(--fovo-ink);
+}
+
+.fovo-header-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  border: 0;
+  border-radius: 4px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  transition: transform 0.18s ease;
+}
+.fovo-header-cta:hover {
+  transform: translateY(-1px);
+}
+
+/* ============================================================================
+   HERO
+============================================================================ */
+.fovo-hero {
+  padding: 48px 32px 0;
+  border-bottom: 1px solid var(--fovo-border);
+}
+
+.fovo-hero-top {
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  gap: 32px;
+  align-items: end;
+  max-width: 1440px;
+  margin: 0 auto 40px;
+}
+
+.fovo-hero-title {
+  font-family: var(--fovo-font-display);
+  font-size: clamp(3.5rem, 8.6vw, 8.25rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  color: var(--fovo-ink);
+}
+
+.fovo-hero-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+}
+
+.fovo-hero-line > span {
+  display: inline-block;
+  animation: fovoLineMaskUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(var(--line-i, 0) * 0.13s + 0.06s);
+}
+
+.fovo-hero-fade {
+  animation: fovoFadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.35s backwards;
+}
+
+.fovo-title-inline-pill {
+  display: inline-block;
+  vertical-align: middle;
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  border: 1.5px solid #0B0B0D;
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: clamp(1rem, 2.2vw, 2rem);
+  letter-spacing: -0.02em;
+  transform: translateY(-10px);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.25s ease;
+}
+.fovo-title-inline-pill:hover {
+  transform: translateY(-12px) rotate(-3deg) scale(1.05);
+  background: var(--fovo-orange);
+}
+
+.fovo-hero-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+
+.fovo-hero-copy {
+  font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+  font-weight: 500;
+  line-height: 1.3;
+  max-width: 32ch;
+  color: var(--fovo-ink);
+}
+
+.fovo-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.fovo-hero-stage {
+  position: relative;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 48px 40px 56px;
+  border: 1px solid var(--fovo-border);
+  border-bottom: 0;
+}
+
+.fovo-hero-showcase {
+  position: relative;
+  z-index: 2;
+  max-width: 1080px;
+  margin: 0 auto;
+  animation: fovoFadeUp 0.95s cubic-bezier(0.16, 1, 0.3, 1) 0.22s backwards;
+  transform: translate3d(calc(var(--mx, 0) * 6px), calc(var(--my, 0) * 5px), 0);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Floating geometric shapes & pills */
+.fovo-geo-tag {
+  position: absolute;
+  z-index: 3;
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #0B0B0D;
+  border: 1.5px solid #0B0B0D;
+  border-radius: 999px;
+  will-change: transform;
+}
+.fovo-geo-tag--lime {
+  top: 20px;
+  left: 24px;
+  background: var(--fovo-lime);
+  animation: fovoFloatSlow 5.5s ease-in-out infinite;
+}
+.fovo-geo-tag--orange {
+  bottom: 24px;
+  right: 28px;
+  background: var(--fovo-orange);
+  animation: fovoFloatReverse 6.2s ease-in-out infinite;
+}
+.fovo-geo-polygon {
+  position: absolute;
+  left: -18px;
+  bottom: 48px;
+  width: 88px;
+  height: 88px;
+  background: var(--fovo-lime);
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  animation: fovoSpinSlow 28s linear infinite;
+}
+.fovo-geo-square {
+  position: absolute;
+  right: 24px;
+  top: 32px;
+  width: 56px;
+  height: 56px;
+  background: var(--fovo-orange);
+  animation: fovoTiltDrift 7s ease-in-out infinite;
+}
+
+.fovo-spec-strip {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 16px 0;
+  background: var(--fovo-elevated);
+  border: 1px solid var(--fovo-border);
+  border-bottom: 0;
+  color: var(--fovo-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  overflow: hidden;
+}
+
+.fovo-spec-track {
+  display: flex;
+  width: max-content;
+  gap: 56px;
+  padding-left: 28px;
+  animation: fovoMarquee 26s linear infinite;
+}
+.fovo-spec-strip:hover .fovo-spec-track {
+  animation-play-state: paused;
+}
+
+/* Illustrated First-Person Viewport frame */
+.fovo-fpv-frame {
+  background: #0B0B0D;
+  color: var(--fovo-ink);
+  border: 1px solid var(--fovo-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.55);
+}
+
+.fovo-fpv-chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--fovo-elevated);
+  border-bottom: 1px solid var(--fovo-border);
+}
+
+.fovo-fpv-dots {
+  display: flex;
+  gap: 6px;
+}
+.fovo-fpv-dots span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #303034;
+}
+.fovo-fpv-dots span:first-child {
+  background: var(--fovo-orange);
+}
+.fovo-fpv-dots span:nth-child(2) {
+  background: var(--fovo-lime);
+}
+
+.fovo-fpv-url {
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--fovo-muted);
+  letter-spacing: 0.06em;
+}
+
+.fovo-fpv-pill {
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.fovo-fpv-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.fovo-fpv-screenGroup {
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-box: view-box;
+}
+
+.fovo-fpv-beam {
+  animation: fovoBeamFlicker 4.2s ease-in-out infinite;
+}
+
+.fovo-fpv-scanline {
+  animation: fovoScanSweep 5.5s ease-in-out infinite;
+}
+
+.fovo-fpv-chair {
+  transition: x 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              fill 0.3s ease,
+              stroke 0.3s ease;
+}
+
+.fovo-fpv-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 14px 20px;
+  background: var(--fovo-bg-sec);
+  border-top: 1px solid var(--fovo-border);
+}
+
+.fovo-fpv-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+.fovo-fpv-metrics div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fovo-fpv-metrics span {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--fovo-muted);
+}
+.fovo-fpv-metrics strong {
+  font-size: 13px;
+  color: var(--fovo-ink);
+}
+
+.fovo-fpv-Switch {
+  display: flex;
+  gap: 6px;
+}
+.fovo-fpv-Switch button {
+  background: var(--fovo-elevated);
+  color: var(--fovo-muted);
+  border: 1px solid var(--fovo-border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: border-color 0.18s ease, color 0.18s ease;
+}
+.fovo-fpv-Switch button:hover {
+  color: var(--fovo-ink);
+  border-color: var(--fovo-lime);
+}
+.fovo-fpv-Switch button.active {
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  border-color: var(--fovo-lime);
+}
+
+/* ============================================================================
+   INTRODUCTION / BRAND STATEMENT
+============================================================================ */
+.fovo-statement {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 96px 32px 104px;
+  border-bottom: 1px solid var(--fovo-border);
+}
+
+.fovo-statement-bar {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--fovo-border);
+  margin-bottom: 56px;
+}
+
+.fovo-statement-body {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 48px;
+  align-items: end;
+}
+
+.fovo-statement-body h2 {
+  font-family: var(--fovo-font-display);
+  font-size: clamp(2.6rem, 5.2vw, 5rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  color: var(--fovo-ink);
+}
+
+.fovo-token-lime {
+  display: inline-block;
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  padding: 0 12px;
+  border-radius: 8px;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fovo-statement.is-visible .fovo-token-lime {
+  transform: rotate(-2deg);
+}
+.fovo-token-lime:hover {
+  transform: rotate(2deg) scale(1.05);
+}
+
+.fovo-token-orange {
+  display: inline-block;
+  background: var(--fovo-orange);
+  color: #0B0B0D;
+  padding: 0 12px;
+  border-radius: 8px;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.fovo-statement.is-visible .fovo-token-orange {
+  transform: rotate(2deg);
+}
+.fovo-token-orange:hover {
+  transform: rotate(-2deg) scale(1.05);
+}
+
+.fovo-statement-body p {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--fovo-muted);
+}
+
+/* ============================================================================
+   THE PROBLEM
+============================================================================ */
+.fovo-problem {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 96px 32px 104px;
+  border-bottom: 1px solid var(--fovo-border);
+}
+
+.fovo-problem-header {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 40px;
+  align-items: end;
+  margin-bottom: 56px;
+}
+
+.fovo-problem-lead {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--fovo-muted);
+}
+
+.fovo-problem-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 112px 1.25fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.fovo-problem-card {
+  border: 1px solid var(--fovo-border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.fovo-card-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.fovo-pill-dark {
+  background: var(--fovo-elevated);
+  color: var(--fovo-ink);
+  border: 1px solid var(--fovo-border);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.fovo-pill-lime {
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.fovo-inline-link {
+  background: none;
+  border: 0;
+  color: var(--fovo-lime);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.fovo-problem-caption {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--fovo-muted);
+}
+.fovo-problem-caption strong {
+  color: var(--fovo-ink);
+}
+
+.fovo-problem-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.fovo-connector-hex {
+  width: 72px;
+  height: 72px;
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  display: grid;
+  place-items: center;
+  font-family: var(--fovo-font-display);
+  font-weight: 700;
+  font-size: 18px;
+  animation: fovoHexPulse 3.6s ease-in-out infinite;
+}
+
+.fovo-connector-line {
+  width: 100%;
+  height: 2px;
+  background: var(--fovo-border);
+}
+
+.fovo-connector-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: center;
+  color: var(--fovo-muted);
+}
+
+/* ============================================================================
+   HOW IT WORKS
+============================================================================ */
+.fovo-steps {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 96px 32px 104px;
+}
+
+.fovo-steps-head {
+  margin-bottom: 56px;
+}
+
+.fovo-step-row {
+  display: grid;
+  gap: 32px;
+  align-items: center;
+  padding: 48px 0;
+  border-top: 1px solid var(--fovo-border);
+}
+.fovo-step-row--01,
+.fovo-step-row--03 {
+  grid-template-columns: 160px 0.9fr 1.1fr;
+}
+.fovo-step-row--02 {
+  grid-template-columns: 1.1fr 160px 0.9fr;
+}
+
+.fovo-step-num {
+  font-family: var(--fovo-font-display);
+  font-size: clamp(4rem, 7vw, 6.5rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  color: var(--fovo-ink);
+}
+
+.fovo-step-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+.fovo-step-text h3 {
+  font-family: var(--fovo-font-display);
+  font-size: clamp(1.85rem, 3vw, 2.75rem);
+  letter-spacing: -0.03em;
+  color: var(--fovo-ink);
+}
+.fovo-step-text p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--fovo-muted);
+}
+
+.fovo-step-pill {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.fovo-step-pill--lime {
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+}
+.fovo-step-pill--orange {
+  background: var(--fovo-orange);
+  color: #0B0B0D;
+}
+.fovo-step-pill--dark {
+  background: var(--fovo-elevated);
+  color: var(--fovo-ink);
+  border: 1px solid var(--fovo-border);
+}
+
+.fovo-step-visual {
+  border: 1px solid var(--fovo-border);
+  border-radius: 8px;
+  padding: 24px;
+}
+.fovo-step-visual--dark {
+  background: var(--fovo-bg-sec);
+}
+
+.fovo-mini-slateGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.fovo-mini-slate {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--fovo-elevated);
+  color: var(--fovo-ink);
+  border: 1px solid var(--fovo-border);
+  border-radius: 6px;
+  padding: 12px;
+  text-align: left;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.2s ease,
+              box-shadow 0.22s ease;
+}
+.fovo-mini-slate:hover {
+  transform: translateY(-4px);
+  border-color: var(--fovo-lime);
+  box-shadow: 4px 4px 0 var(--fovo-lime);
+}
+.fovo-mini-swatch {
+  width: 44px;
+  height: 56px;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  color: #F5F5F2;
+  font-size: 11px;
+  font-weight: 700;
+  flex: none;
+}
+.fovo-mini-slate div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fovo-mini-slate small {
+  font-size: 12px;
+  color: var(--fovo-muted);
+}
+
+.fovo-step-angleDiagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.fovo-step-angleDiagram line[stroke-dasharray] {
+  animation: fovoDashFlow 1.8s linear infinite;
+}
+
+.fovo-compare-specimen {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: center;
+  background: var(--fovo-elevated);
+  border: 1px solid var(--fovo-border);
+  border-radius: 6px;
+  padding: 20px;
+}
+.fovo-specimen-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--fovo-ink);
+}
+.fovo-specimen-price {
+  display: inline-block;
+  align-self: flex-start;
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 13px;
+}
+.fovo-specimen-vs {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--fovo-orange);
+  color: #0B0B0D;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ============================================================================
+   SPATIAL AUDIO (DARK + ORANGE GEOMETRIC BLOCK)
+============================================================================ */
+.fovo-audio {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  border-top: 1px solid var(--fovo-border);
+  border-bottom: 1px solid var(--fovo-border);
+}
+
+.fovo-audio-left {
+  background: var(--fovo-bg-sec);
+  color: var(--fovo-ink);
+  padding: 88px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+}
+
+.fovo-audio-left h2 {
+  font-family: var(--fovo-font-display);
+  font-size: clamp(2.5rem, 4.8vw, 4.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.fovo-audio-lead {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--fovo-lime);
+}
+
+.fovo-audio-body {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--fovo-muted);
+  max-width: 54ch;
+}
+
+.fovo-audio-SeatTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.fovo-audio-SeatTabs button {
+  background: var(--fovo-elevated);
+  color: var(--fovo-ink);
+  border: 1px solid var(--fovo-border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.fovo-audio-SeatTabs button.on {
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  border-color: var(--fovo-lime);
+}
+
+.fovo-audio-disclaimer {
+  font-size: 12px;
+  color: var(--fovo-muted);
+  border-left: 2px solid var(--fovo-orange);
+  padding-left: 12px;
+}
+
+.fovo-audio-right {
+  background: var(--fovo-orange);
+  background-image:
+    linear-gradient(to right, rgba(11, 11, 13, 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(11, 11, 13, 0.14) 1px, transparent 1px);
+  background-size: 28px 28px;
+  padding: 56px;
+  display: grid;
+  place-items: center;
+}
+
+.fovo-audio-disc {
+  width: min(460px, 82vw);
+  aspect-ratio: 1;
+}
+.fovo-audio-disc svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.fovo-wave-ring {
+  animation: fovoPulseRing 3.4s ease-in-out infinite;
+}
+
+.fovo-sound-ray {
+  stroke-dasharray: 6 6;
+  animation: fovoDashFlow 1.4s linear infinite;
+  transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fovo-listener-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fovoHaloPulse 2.4s ease-in-out infinite;
+}
+
+/* ============================================================================
+   EVERY SEAT IS DIFFERENT
+============================================================================ */
+.fovo-every {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 96px 32px 104px;
+}
+
+.fovo-every-head {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 40px;
+  align-items: end;
+  margin-bottom: 40px;
+}
+
+.fovo-every-copy {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--fovo-muted);
+}
+
+.fovo-tier-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.fovo-tier-card {
+  background: var(--fovo-bg-sec);
+  color: var(--fovo-ink);
+  border: 1px solid var(--fovo-border);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.22s ease;
+}
+.fovo-tier-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--fovo-lime);
+}
+.fovo-tier-card.on {
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  border-color: var(--fovo-lime);
+}
+.fovo-tier-card.on small {
+  color: #1B1B1F;
+}
+.fovo-tier-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.fovo-tier-card small {
+  font-size: 12px;
+  color: var(--fovo-muted);
+}
+
+.fovo-every-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.fovo-every-map {
+  border: 1px solid var(--fovo-border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.fovo-every-summary {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid var(--fovo-border);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: var(--fovo-bg-sec);
+}
+.fovo-every-summary p {
+  font-size: 14px;
+  color: var(--fovo-muted);
+  margin-top: 4px;
+}
+
+/* ============================================================================
+   FINAL CALL TO ACTION
+============================================================================ */
+.fovo-final-cta {
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  border-top: 1px solid var(--fovo-border);
+  border-bottom: 1px solid var(--fovo-border);
+  padding: 88px 32px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.fovo-final-left {
+  max-width: 680px;
+  padding-left: max(0px, calc((100vw - 1440px) / 2));
+}
+.fovo-final-left h2 {
+  font-family: var(--fovo-font-display);
+  font-size: clamp(3.5rem, 7.5vw, 7rem);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  margin: 0 0 16px;
+  color: #0B0B0D;
+}
+.fovo-final-left p {
+  font-size: 20px;
+  font-weight: 500;
+  color: #141416;
+}
+
+.fovo-final-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.fovo-final-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 24px;
+  background: #0B0B0D;
+  color: #F5F5F2;
+  border: 0;
+  border-radius: 8px;
+  padding: 24px 36px;
+  font-family: var(--fovo-font-display);
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+  font-weight: 700;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s ease;
+}
+.fovo-final-button:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 8px 8px 0 var(--fovo-orange);
+}
+.fovo-final-button:hover .fovo-final-arrow {
+  transform: rotate(45deg) scale(1.08);
+}
+.fovo-final-arrow {
+  background: var(--fovo-orange);
+  color: #0B0B0D;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fovo-final-sublink {
+  background: none;
+  border: 0;
+  color: #0B0B0D;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* ============================================================================
+   FOOTER
+============================================================================ */
+.fovo-footer {
+  background: var(--fovo-bg);
+  color: var(--fovo-ink);
+  padding: 64px 32px 0;
+}
+
+.fovo-footer-links {
+  max-width: 1440px;
+  margin: 0 auto 48px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+
+.fovo-footer-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.fovo-footer-col button,
+.fovo-footer-col a {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 14px;
+  color: var(--fovo-muted);
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+.fovo-footer-col button:hover,
+.fovo-footer-col a:hover {
+  color: var(--fovo-lime);
+}
+
+.fovo-footer-meta p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--fovo-muted);
+}
+.fovo-footer-meta small {
+  color: var(--fovo-muted);
+}
+
+/* Giant footer wordmark */
+.fovo-footer-giant {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--fovo-font-display);
+  font-size: clamp(6rem, 23vw, 22rem);
+  font-weight: 700;
+  line-height: 0.82;
+  letter-spacing: -0.06em;
+  color: var(--fovo-ink);
+  user-select: none;
+  overflow: hidden;
+}
+
+.fovo-footer-screenCutout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(72px, 14vw, 200px);
+  height: clamp(44px, 8.5vw, 120px);
+  background: var(--fovo-lime);
+  color: #0B0B0D;
+  border-radius: 6px;
+  font-size: clamp(0.85rem, 1.8vw, 1.5rem);
+  letter-spacing: 0.08em;
+  transform: translateY(-28%);
+}
+
+/* ============================================================================
+   RESPONSIVE BREAKPOINTS
+============================================================================ */
+@media (max-width: 1080px) {
+  .fovo-hero-top,
+  .fovo-statement-body,
+  .fovo-problem-header,
+  .fovo-audio,
+  .fovo-every-head,
+  .fovo-every-grid,
+  .fovo-final-cta {
+    grid-template-columns: 1fr;
+  }
+
+  .fovo-problem-grid {
+    grid-template-columns: 1fr;
+  }
+  .fovo-problem-connector {
+    flex-direction: row;
+    justify-content: center;
+  }
+  .fovo-connector-line {
+    width: 64px;
+  }
+
+  .fovo-step-row--01,
+  .fovo-step-row--02,
+  .fovo-step-row--03 {
+    grid-template-columns: 1fr;
+  }
+
+  .fovo-tier-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .fovo-footer-links {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .fovo-header {
+    padding: 12px 16px;
+  }
+  .fovo-nav {
+    display: none;
+  }
+  .fovo-hero,
+  .fovo-statement,
+  .fovo-problem,
+  .fovo-steps,
+  .fovo-every,
+  .fovo-final-cta,
+  .fovo-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .fovo-hero-stage {
+    padding: 24px 12px;
+  }
+  .fovo-geo-polygon,
+  .fovo-geo-square {
+    display: none;
+  }
+  .fovo-audio-left,
+  .fovo-audio-right {
+    padding: 40px 20px;
+  }
+  .fovo-mini-slateGrid,
+  .fovo-tier-strip,
+  .fovo-footer-links {
+    grid-template-columns: 1fr;
+  }
+}

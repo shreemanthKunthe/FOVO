@@ -9,13 +9,32 @@ export function ShowSummary() {
   const show = useShow();
   const go = useBooking((s) => s.go);
   if (!show) return null;
-  const when = new Date(show.date + 'T00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+  const when = new Date(show.date + 'T00:00').toLocaleDateString('en-IN', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
   return (
     <div className="summary">
+      <div className="summary-badges">
+        <span className="eyebrow-pill">{show.cinema.city.toUpperCase()}</span>
+        <span className="verify-badge estimated">
+          {show.config.verificationStatus === 'VERIFIED_LAYOUT'
+            ? 'VERIFIED LAYOUT'
+            : 'ESTIMATED PROTOTYPE LAYOUT'}
+        </span>
+      </div>
       <strong>{show.movie.title}</strong>
-      <span className="muted">{show.cinema.name} · {show.cinema.format}</span>
-      <span className="muted">{when} · {show.time}</span>
-      <button className="link" onClick={() => go('showtimes')}>Change showtime</button>
+      <span className="muted">
+        {show.cinema.name} · {show.cinema.format}
+      </span>
+      <span className="muted">{show.cinema.address}</span>
+      <span className="muted">
+        {when} · {show.time} ({show.movie.language})
+      </span>
+      <button className="link" onClick={() => go('showtimes')}>
+        Change cinema or showtime
+      </button>
     </div>
   );
 }
@@ -37,8 +56,16 @@ export function SeatSelection() {
     <div className="seat-layout">
       <section className="card map-card">
         <header className="map-head">
-          <h2>Choose your seat</h2>
-          <span className="muted">{left} of {show.seats.length} available · scroll or use + / − to zoom, drag to pan</span>
+          <div className="map-head-top">
+            <h2>{show.config.name}</h2>
+            <span className="verify-badge demo">AVAILABILITY: DEMO DATA</span>
+          </div>
+          <span className="muted">
+            {left} of {show.seats.length} seats available · scroll or use + / − to zoom, drag to pan
+          </span>
+          {show.config.verificationNotes && (
+            <p className="layout-verify-note">{show.config.verificationNotes}</p>
+          )}
         </header>
         <SeatMap
           config={show.config}
@@ -55,14 +82,19 @@ export function SeatSelection() {
         {seat ? (
           <>
             <SeatCard seat={seat} config={show.config} />
-            <button className="primary" onClick={() => go('preview')}>Experience this seat</button>
-            <button className="ghost" onClick={() => go('checkout')}>Skip preview and book</button>
+            <button className="primary" onClick={() => go('preview')}>
+              Experience Seat {seat.id} in 3D
+            </button>
+            <button className="ghost" onClick={() => go('checkout')}>
+              Skip preview &amp; proceed to booking handoff
+            </button>
           </>
         ) : (
-          <p className="muted empty">Select an available seat to see the movie from there.</p>
+          <p className="muted empty">
+            Select any available seat in the auditorium map to inspect its sightline and experience the first-person 3D view.
+          </p>
         )}
       </aside>
     </div>
   );
 }
-

@@ -124,6 +124,7 @@ export function CameraRig({ seat, config }: { seat: Seat; config: AuditoriumConf
     }
     camera.position.copy(s.pos);
     camera.rotation.set(s.pitch + s.uPitch, s.yaw + s.uYaw, 0, 'YXZ');
+    camera.updateMatrixWorld();
     camera.getWorldDirection(fwd.current);
     audioEngine.setListener([s.pos.x, s.pos.y, s.pos.z], [fwd.current.x, fwd.current.y, fwd.current.z]);
   });

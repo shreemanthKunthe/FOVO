@@ -1,0 +1,203 @@
+/* ============================================================================
+   FOVO — CINEMATIC PRELOADER
+   Palette: #0B0B0D background, #F5F5F2 text, #E5B84B theatre-light gold accent, #303034 border
+============================================================================ */
+
+.fovo-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0B0B0D;
+  color: #F5F5F2;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  user-select: none;
+  transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fovo-preloader--exit {
+  opacity: 0;
+  transform: scale(1.025);
+  pointer-events: none;
+}
+
+/* Subtle overhead theatrical projection light cone */
+.fovo-preloader-beam {
+  position: absolute;
+  top: -15%;
+  left: 50%;
+  width: min(860px, 110vw);
+  height: 85vh;
+  transform: translateX(-50%) scaleY(0.4);
+  transform-origin: top center;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(229, 184, 75, 0.16) 0%,
+    rgba(138, 109, 59, 0.06) 42%,
+    rgba(11, 11, 13, 0) 75%
+  );
+  opacity: 0;
+  transition: opacity 0.65s ease, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.fovo-preloader--project .fovo-preloader-beam,
+.fovo-preloader--exit .fovo-preloader-beam {
+  opacity: 1;
+  transform: translateX(-50%) scaleY(1);
+}
+
+/* Cinema aspect ratio corner markers */
+.fovo-preloader-frame {
+  position: absolute;
+  inset: clamp(20px, 4vw, 48px);
+  pointer-events: none;
+}
+
+.fovo-preloader-frame .corner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: #303034;
+  border-style: solid;
+  transition: border-color 0.5s ease;
+}
+
+.fovo-preloader--project .fovo-preloader-frame .corner {
+  border-color: rgba(229, 184, 75, 0.48);
+}
+
+.fovo-preloader-frame .tl {
+  top: 0;
+  left: 0;
+  border-width: 1.5px 0 0 1.5px;
+}
+.fovo-preloader-frame .tr {
+  top: 0;
+  right: 0;
+  border-width: 1.5px 1.5px 0 0;
+}
+.fovo-preloader-frame .bl {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 1.5px 1.5px;
+}
+.fovo-preloader-frame .br {
+  bottom: 0;
+  right: 0;
+  border-width: 0 1.5px 1.5px 0;
+}
+
+.fovo-preloader-center {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: min(420px, 84vw);
+}
+
+.fovo-preloader-aperture {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-sans, 'Manrope', system-ui, sans-serif);
+  font-size: var(--type-caption-size, 12px);
+  line-height: var(--type-caption-line, 16px);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: #A4A4A7;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: fovoPreloaderFade 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.08s forwards;
+}
+
+.fovo-preloader-aperture .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #E5B84B;
+  box-shadow: 0 0 12px rgba(229, 184, 75, 0.85);
+}
+
+.fovo-preloader-wordmark {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.02em;
+  font-family: var(--font-sans, 'Manrope', system-ui, sans-serif);
+  font-size: clamp(4.2rem, 11vw, 7.5rem);
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.055em;
+  color: #F5F5F2;
+  opacity: 0;
+  transform: scale(0.94);
+  animation: fovoPreloaderWord 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
+}
+
+.fovo-preloader--project .fovo-preloader-wordmark {
+  text-shadow: 0 0 48px rgba(229, 184, 75, 0.2);
+}
+
+.fovo-preloader-barTrack {
+  width: 100%;
+  height: 2px;
+  background: #1B1B1F;
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.fovo-preloader-barFill {
+  width: 100%;
+  height: 100%;
+  background: #E5B84B;
+  transform-origin: 0 50%;
+  transition: transform 0.08s linear;
+  box-shadow: 0 0 16px rgba(229, 184, 75, 0.78);
+}
+
+.fovo-preloader-meta {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-sans, 'Manrope', system-ui, sans-serif);
+  font-size: var(--type-caption-size, 12px);
+  line-height: var(--type-caption-line, 16px);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: #A4A4A7;
+}
+
+.fovo-preloader-pct {
+  color: #E5B84B;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes fovoPreloaderWord {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fovoPreloaderFade {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

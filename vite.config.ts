@@ -1,11 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { tmdbServerPlugin } from './src/server/tmdbProxy';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tmdbServerPlugin()],
   build: {
-    // The 3D stack (added in Phase 2) will be lazy-loaded and split into its
-    // own chunk so the browse/seat-map UI loads fast.
+    chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -16,4 +16,3 @@ export default defineConfig({
     },
   },
 });
-

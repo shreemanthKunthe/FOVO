@@ -25,6 +25,9 @@ export interface SectionSpec {
 export interface AuditoriumSpec {
   id: string;
   name: string;
+  cinemaId?: string;
+  verificationStatus?: 'VERIFIED_LAYOUT' | 'ESTIMATED_PROTOTYPE_LAYOUT';
+  verificationNotes?: string;
   screen: { width: number; height: number; bottomY: number };
   firstRowZ: number;
   /** Extra distance inserted between two different sections (m). */
@@ -101,6 +104,11 @@ export function createAuditorium(spec: AuditoriumSpec): AuditoriumConfig {
   return {
     id: spec.id,
     name: spec.name,
+    cinemaId: spec.cinemaId,
+    verificationStatus: spec.verificationStatus ?? 'ESTIMATED_PROTOTYPE_LAYOUT',
+    verificationNotes:
+      spec.verificationNotes ??
+      'Estimated configurable auditorium layout for seat-perspective preview. Exact physical seat counts and room dimensions require a venue floorplan.',
     dims: { width, length: Math.ceil(last.z + 3), height: Math.ceil(last.riser + 5) },
     screen: spec.screen,
     aisleWidth: spec.aisleWidth,
@@ -110,7 +118,8 @@ export function createAuditorium(spec: AuditoriumSpec): AuditoriumConfig {
 }
 
 /**
- * Reference layout (from the supplied seat-map screenshot), 183 seats:
+ * Primary Pilot — Cinépolis, Urban Oasis Mall, Hubballi (Audi 1 estimated configuration)
+ * Based on the 4-tier reference seating architecture (183 seats):
  *   Lounger      Rs290  1 row  x 12  (front, nearest the screen)
  *   Classic      Rs250  2 rows x 15
  *   Classic Plus Rs270  6 rows x 15
@@ -119,7 +128,11 @@ export function createAuditorium(spec: AuditoriumSpec): AuditoriumConfig {
  */
 export const referenceSpec: AuditoriumSpec = {
   id: 'reference-183',
-  name: 'Screen 1',
+  name: 'Cinépolis Audi 1 (Estimated Layout)',
+  cinemaId: 'cinepolis-urban-oasis-hbl',
+  verificationStatus: 'ESTIMATED_PROTOTYPE_LAYOUT',
+  verificationNotes:
+    'Cinépolis Urban Oasis Mall is verified as a 5-screen multiplex in Hubballi. This 183-seat 4-tier layout (Prime, Classic Plus, Classic, Lounger) is an estimated prototype configuration modelled from our reference seat map.',
   screen: { width: 11, height: 4.6, bottomY: 1.6 },
   firstRowZ: 5.5,
   sectionGap: 0.5,
@@ -143,7 +156,11 @@ export const referenceSpec: AuditoriumSpec = {
 export const grandSpec: AuditoriumSpec = {
   ...referenceSpec,
   id: 'grand-212',
-  name: 'Audi 3',
+  name: 'Multiplex Audi 2 (Estimated Center-Aisle Layout)',
+  cinemaId: 'pvr-laxmi-mall-hbl',
+  verificationStatus: 'ESTIMATED_PROTOTYPE_LAYOUT',
+  verificationNotes:
+    'Estimated 212-seat stadium auditorium with a centre aisle. Used to preview off-axis and centre-aisle perspectives when official CAD floorplans are not yet supplied.',
   screen: { width: 12, height: 5, bottomY: 1.6 },
   blocks: [
     { section: 'lounger', rows: 1, seats: 12 },

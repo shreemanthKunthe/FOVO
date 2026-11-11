@@ -1,15 +1,17 @@
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useBooking, type Step } from './store/bookingStore';
 import { MovieList, ShowtimePicker } from './features/browse/Browse';
 import { SeatSelection } from './features/seats/SeatSelection';
 import { Checkout, Confirmation } from './features/booking/Checkout';
 import { PreviewScreen } from './features/preview/lazy';
+import { LandingPage } from './features/landing/LandingPage';
+import { Preloader, hasSeenPreloader } from './features/preloader/Preloader';
 
 const STEPS: { id: Step; label: string }[] = [
-  { id: 'movies', label: 'Movie' },
-  { id: 'showtimes', label: 'Showtime' },
-  { id: 'seats', label: 'Seat' },
-  { id: 'preview', label: 'Preview' },
+  { id: 'movies', label: 'Movies' },
+  { id: 'showtimes', label: 'Showtimes' },
+  { id: 'seats', label: 'Seating' },
+  { id: 'preview', label: 'First-Person View' },
   { id: 'checkout', label: 'Checkout' },
 ];
 
@@ -28,7 +30,14 @@ function Header() {
   };
   return (
     <header className="topbar">
-      <span className="logo">CineShow</span>
+      <button
+        type="button"
+        className="logo-btn"
+        onClick={() => go('landing')}
+        aria-label="Return to FOVO home"
+      >
+        FOVO
+      </button>
       {step !== 'confirmed' && (
         <nav aria-label="Booking steps">
           {STEPS.map((s) => (
@@ -44,12 +53,28 @@ function Header() {
           ))}
         </nav>
       )}
+      <button
+        type="button"
+        className="topbar-home-link"
+        onClick={() => go('landing')}
+      >
+        Home
+      </button>
     </header>
   );
 }
 
 export function App() {
+  const [preloading, setPreloading] = useState<boolean>(() => !hasSeenPreloader());
   const step = useBooking((s) => s.step);
+
+  if (preloading) {
+    return <Preloader onComplete={() => setPreloading(false)} />;
+  }
+
+  if (step === 'landing') {
+    return <LandingPage />;
+  }
 
   if (step === 'preview') {
     return (

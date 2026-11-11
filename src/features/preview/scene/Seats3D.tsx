@@ -58,7 +58,7 @@ const PARTS: Part[] = [
 const DARK = new ThreeColor('#1b1b1f');
 const OCCUPIED = new ThreeColor('#2c2c31');
 const UNAVAILABLE = new ThreeColor('#3a2424');
-const SELECTED = new ThreeColor('#f2e6c9');
+const SELECTED = new ThreeColor('#E5B84B');
 const HEAD_TONES = ['#2a211c', '#1d1a17', '#3a2b22', '#262626', '#31251d'].map((c) => new ThreeColor(c));
 const TORSO_TONES = ['#22262e', '#2a2226', '#1f2a25', '#2b2b2b', '#2e2a22'].map((c) => new ThreeColor(c));
 

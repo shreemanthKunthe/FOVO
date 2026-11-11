@@ -125,9 +125,9 @@ export const SeatMap = memo(function SeatMap({
             let fill = 'transparent';
             let stroke = sec.color;
             let dash: string | undefined;
-            if (status === 'occupied') { fill = '#2a2a2f'; stroke = '#2a2a2f'; }
+            if (status === 'occupied') { fill = '#26262b'; stroke = '#26262b'; }
             else if (status === 'unavailable') { stroke = '#4a4a52'; dash = '3 2'; }
-            if (selected) { fill = '#f2e6c9'; stroke = '#f2e6c9'; }
+            if (selected) { fill = '#E5B84B'; stroke = '#E5B84B'; }
             return (
               <g key={s.id}>
                 <rect
@@ -158,7 +158,7 @@ export const SeatMap = memo(function SeatMap({
                 {pinned && !selected && (
                   <rect
                     x={s.map.x - w / 2 - 2} y={s.map.y - SEAT_H / 2 - 2} width={w + 4} height={SEAT_H + 4}
-                    rx={4} fill="none" stroke="#f2e6c9" strokeDasharray="3 2" pointerEvents="none"
+                    rx={4} fill="none" stroke="#FF813D" strokeDasharray="3 2" pointerEvents="none"
                   />
                 )}
               </g>
