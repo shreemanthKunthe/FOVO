@@ -1909,6 +1909,225 @@ h4 {
   font-weight: 500;
 }
 
+/* ============================================================================
+   LOCATION DISCOVERY, AUDITORIUM IMPORT & PROVIDER FEASIBILITY UI
+============================================================================ */
+.city-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.city-bar-container .city-bar {
+  margin-bottom: 0;
+}
+
+.city-bar-badges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.city-detect-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-line);
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  transition: border-color 0.16s ease, color 0.16s ease;
+}
+
+.city-detect-btn:hover,
+.city-detect-btn.active {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.location-note {
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-line);
+  color: var(--accent-secondary);
+}
+
+.city-search-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.city-search-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.directory-head-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.directory-badges-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
+
+.auditorium-SubTabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin: var(--space-3) 0;
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.unlinked-auditorium-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-4);
+  margin: var(--space-3) 0;
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  border: 1px dashed var(--border-subtle);
+}
+
+.unlinked-auditorium-box p {
+  margin-top: 4px;
+  max-width: 68ch;
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  background: rgba(11, 11, 13, 0.84);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  overflow-y: auto;
+}
+
+.modal-card {
+  width: min(780px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.modal-card.wide {
+  width: min(920px, 100%);
+}
+
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.modal-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.code-textarea {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: var(--space-3);
+  resize: vertical;
+}
+
+.field-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--type-body-sm-size);
+  font-weight: 600;
+}
+
+.field-input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--type-body-sm-size);
+}
+
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.provider-report-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.provider-report-card {
+  gap: var(--space-2);
+}
+
+.provider-cap-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0;
+}
+
 @media (max-width: 960px) {
   .category-tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));

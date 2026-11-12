@@ -98,7 +98,12 @@ function SeatPart({
       const sec = config.sections[seat.section];
       const pl = part.place(sec, seatWidth(sec), seatDepth(sec));
       const [x, y, z] = seat.world.position;
-      compose(m, [x + pl.p[0], y + pl.p[1], z + pl.p[2]], pl.s, pl.rx ?? 0);
+      const ry = seat.world.rotationY || 0;
+      const cosY = Math.cos(ry);
+      const sinY = Math.sin(ry);
+      const ox = pl.p[0] * cosY + pl.p[2] * sinY;
+      const oz = -pl.p[0] * sinY + pl.p[2] * cosY;
+      compose(m, [x + ox, y + pl.p[1], z + oz], pl.s, pl.rx ?? 0, ry);
       if (!part.tinted) c.copy(DARK);
       else if (seat.id === selectedId) c.copy(SELECTED);
       else {

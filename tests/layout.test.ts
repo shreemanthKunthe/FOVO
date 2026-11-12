@@ -1,13 +1,31 @@
 import { describe, it, expect } from 'vitest';
-import { referenceAuditorium as cfg, grandAuditorium } from '../src/domain/layout/presets';
-import { generateSeats } from '../src/domain/layout/generateSeats';
+import {
+  referenceAuditorium as cfg,
+  grandAuditorium,
+  imaxCurvedAuditorium,
+  boutiqueReclinerAuditorium,
+} from '../src/domain/layout/presets';
+import { generateSeats, validateAuditoriumGeometry } from '../src/domain/layout/generateSeats';
 import { createMapTransform } from '../src/domain/coords';
 import { computeCameraPose, viewingStats } from '../src/domain/viewing';
 import { neighbourSeat } from '../src/domain/navigation';
 import { mockAvailability } from '../src/data/mockAvailability';
-import { cinemas, getCinema, getCinemasByCity, getShowtimesForCinema, SUPPORTED_CITIES } from '../src/data/cinemas';
+import {
+  cinemas,
+  getCinema,
+  getCinemasByCity,
+  getShowtimesForCinema,
+  SUPPORTED_CITIES,
+  type Cinema,
+} from '../src/data/cinemas';
 import { getMovie, getPrimaryTrailer, registerMovies, type Movie } from '../src/data/movies';
 import { deduplicateMovies, DISCOVERY_CACHE_TTL_MS, isCacheStale } from '../src/services/tmdbClient';
+import {
+  convertVistaSeatPlanToFovo,
+  SAMPLE_VISTA_SEAT_PLAN_PAYLOAD,
+} from '../src/services/vistaSeatPlanConverter';
+import { deduplicateAndEnrichCinemas } from '../src/services/cinemaProviders';
+import { haversineDistanceKm } from '../src/services/locationService';
 import { trailer, useTrailer } from '../src/features/trailer/TrailerController';
 
 const seats = generateSeats(cfg);
@@ -132,9 +150,10 @@ describe('seat navigation', () => {
 });
 
 describe('Hubballi–Dharwad cinema directory & dynamic discovery engine', () => {
-  it('sets Hubballi as the primary pilot market and lists Cinépolis Urban Oasis Mall first', () => {
-    expect(SUPPORTED_CITIES[0].id).toBe('hubballi');
-    expect(SUPPORTED_CITIES[0].isPrimaryMarket).toBe(true);
+  it('supports multi-city Indian markets (Bengaluru, Mumbai, Hubballi) and verifies Cinépolis Urban Oasis Mall', () => {
+    expect(SUPPORTED_CITIES.some((c) => c.id === 'bengaluru')).toBe(true);
+    expect(SUPPORTED_CITIES.some((c) => c.id === 'mumbai')).toBe(true);
+    expect(SUPPORTED_CITIES.some((c) => c.id === 'hubballi')).toBe(true);
     const hubballiCinemas = getCinemasByCity('hubballi');
     expect(hubballiCinemas.length).toBeGreaterThanOrEqual(4);
     const cinepolis = getCinema('cinepolis-urban-oasis-hbl');
@@ -142,7 +161,7 @@ describe('Hubballi–Dharwad cinema directory & dynamic discovery engine', () =>
     expect(cinepolis?.city).toBe('Hubballi');
     expect(cinepolis?.auditoriumCount).toBe(5);
     expect(cinepolis?.verificationTier).toBe('MANUALLY_VERIFIED');
-    expect(cinepolis?.auditorium.verificationStatus).toBe('ESTIMATED_PROTOTYPE_LAYOUT');
+    expect(cinepolis?.auditorium?.verificationStatus).toBe('ESTIMATED_PROTOTYPE_LAYOUT');
   });
 
   it('registers, deduplicates, and resolves official trailers for dynamically discovered Indian releases', () => {
@@ -253,5 +272,104 @@ describe('Hubballi–Dharwad cinema directory & dynamic discovery engine', () =>
     expect(records.length).toBeGreaterThan(0);
     expect(records[0].verificationTier).toBe('DEMO_DATA');
     expect(records[0].externalBookingUrl).toContain('https://');
+  });
+});
+
+describe('Universal Auditorium Architecture, Vista SeatPlan Converter & Automated Discovery', () => {
+  it('supports curved IMAX and boutique recliner auditorium geometries with inward-angled seats', () => {
+    const imaxSeats = generateSeats(imaxCurvedAuditorium);
+    expect(imaxSeats.length).toBe(288);
+    expect(validateAuditoriumGeometry(imaxCurvedAuditorium).valid).toBe(true);
+
+    // Outer seats in a curved IMAX row curve slightly forward (smaller z) and angle inward (non-zero rotationY)
+    const rowASeats = imaxSeats.filter((s) => s.row === 'A');
+    const leftMost = rowASeats[0];
+    const centerSeat = rowASeats[Math.floor(rowASeats.length / 2)];
+    const rightMost = rowASeats[rowASeats.length - 1];
+    expect(leftMost.world.position[2]).toBeLessThan(centerSeat.world.position[2]);
+    expect(leftMost.world.rotationY).toBeGreaterThan(0);
+    expect(rightMost.world.rotationY).toBeLessThan(0);
+
+    const reclinerSeats = generateSeats(boutiqueReclinerAuditorium);
+    expect(reclinerSeats.length).toBe(64);
+    expect(validateAuditoriumGeometry(boutiqueReclinerAuditorium).valid).toBe(true);
+  });
+
+  it('converts a Vista Cinema Connect GetSessionSeatPlan payload into FOVO 3D coordinates and live availability', () => {
+    const res = convertVistaSeatPlanToFovo(SAMPLE_VISTA_SEAT_PLAN_PAYLOAD, {
+      cinemaId: 'pvr-nexus-koramangala-blr',
+      city: 'Bengaluru',
+      country: 'India',
+    });
+    expect(res.ok).toBe(true);
+    expect(res.config).not.toBeNull();
+    expect(res.config?.layoutSource).toBe('VISTA_CONNECT_API');
+    expect(res.config?.verificationStatus).toBe('VISTA_GRID_CALIBRATED');
+    expect(res.config?.rows.length).toBe(9);
+
+    // Row J has ColumnIndex jumps at 4->6 and 11->13, which should be detected as aislesAfter [4, 10]
+    const rowJ = res.config!.rows.find((r) => r.label === 'J');
+    expect(rowJ?.aislesAfter).toEqual([4, 10]);
+
+    // Check mapped seat availability from Vista Status codes (0=Available, 1=Sold)
+    expect(res.availability['J-1']).toBe('available');
+    expect(res.availability['J-6']).toBe('occupied');
+  });
+
+  it('rejects malformed Vista payloads that lack SeatLayoutData.Areas', () => {
+    // @ts-expect-error testing invalid payload
+    const bad = convertVistaSeatPlanToFovo({ SeatLayoutData: {} });
+    expect(bad.ok).toBe(false);
+    expect(bad.config).toBeNull();
+    expect(bad.errors.length).toBeGreaterThan(0);
+  });
+
+  it('deduplicates discovered cinemas by external Place/OSM ID and proximity, and preserves honest fallback when no seat map exists', () => {
+    const blrCoords = { lat: 12.9716, lng: 77.5946 };
+    const placeA: Cinema = {
+      id: 'gplace-ChIJ123',
+      externalIds: { googlePlaceId: 'ChIJ123' },
+      name: 'INOX: Garuda Mall, Magrath Road',
+      brand: 'PVR INOX',
+      cityId: 'bengaluru',
+      city: 'Bengaluru',
+      state: 'Karnataka',
+      country: 'India',
+      area: 'Ashok Nagar',
+      address: 'Garuda Mall, Magrath Road, Bengaluru',
+      coordinates: { lat: 12.9703, lng: 77.6094 },
+      auditoriumCount: null,
+      supportedFormats: ['2D', '3D'],
+      format: 'Discovered via Google Places API (New)',
+      auditorium: null,
+      auditoriums: [],
+      hasSeatMapSupport: false,
+      seatMapProvider: 'NONE',
+      dataSource: 'GOOGLE_PLACES_NEW',
+      bookingProvider: 'bookmyshow',
+      externalBookingUrl: 'https://in.bookmyshow.com/explore/cinemas-bengaluru',
+      verificationTier: 'LIVE_VERIFIED',
+      verificationNotes: 'Discovered via Google Places API (New).',
+      lastVerifiedAt: '2026-11-12',
+    };
+    const duplicateOsmNearPlaceA: Cinema = {
+      ...placeA,
+      id: 'cinema-osm-node-999',
+      externalIds: { osmId: 'osm-node-999' },
+      name: 'INOX Garuda Mall',
+      coordinates: { lat: 12.9704, lng: 77.6095 },
+      dataSource: 'OSM_OVERPASS_LIVE',
+    };
+
+    const deduped = deduplicateAndEnrichCinemas([placeA, duplicateOsmNearPlaceA], blrCoords);
+    expect(deduped).toHaveLength(1);
+    expect(deduped[0].externalIds?.googlePlaceId).toBe('ChIJ123');
+    expect(deduped[0].externalIds?.osmId).toBe('osm-node-999');
+    expect(deduped[0].hasSeatMapSupport).toBe(false);
+    expect(deduped[0].auditorium).toBeNull();
+    expect(deduped[0].distanceKm).toBeCloseTo(
+      haversineDistanceKm(blrCoords, placeA.coordinates),
+      1,
+    );
   });
 });

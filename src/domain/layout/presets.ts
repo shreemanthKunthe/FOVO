@@ -1,12 +1,20 @@
-import type { AuditoriumConfig, RowDef, SectionDef, SectionId } from '../types';
+import type {
+  AuditoriumArchShape,
+  AuditoriumConfig,
+  AuditoriumVerificationStatus,
+  LayoutSourceType,
+  RowDef,
+  SectionDef,
+  SectionId,
+} from '../types';
 
 /**
  * Auditoriums are generated from a small declarative spec. Change row counts,
  * seat counts, spacing, prices or aisles here; the seat map, the 3D room and
  * the camera poses all follow automatically.
  *
- * ASSUMPTION: all dimensions are configurable sample values, not measurements
- * of a real cinema.
+ * ASSUMPTION: all dimensions are configurable sample values unless explicitly
+ * imported from a verified physical survey.
  */
 export interface BlockSpec {
   section: SectionId;
@@ -14,6 +22,10 @@ export interface BlockSpec {
   seats: number;
   /** Seat numbers after which a walkway is inserted. */
   aislesAfter?: number[];
+  /** Optional missing seat numbers in this block. */
+  missingSeats?: number[];
+  /** Optional horizontal radius of curvature (m) for curved / IMAX rows. */
+  curveRadius?: number;
 }
 export interface SectionSpec {
   price: number;
@@ -26,7 +38,13 @@ export interface AuditoriumSpec {
   id: string;
   name: string;
   cinemaId?: string;
-  verificationStatus?: 'VERIFIED_LAYOUT' | 'ESTIMATED_PROTOTYPE_LAYOUT';
+  screenNumber?: number;
+  country?: string;
+  city?: string;
+  archShape?: AuditoriumArchShape;
+  layoutSource?: LayoutSourceType;
+  lastVerifiedAt?: string;
+  verificationStatus?: AuditoriumVerificationStatus;
   verificationNotes?: string;
   screen: { width: number; height: number; bottomY: number };
   firstRowZ: number;
@@ -74,7 +92,13 @@ export function createAuditorium(spec: AuditoriumSpec): AuditoriumConfig {
   ) as Record<SectionId, SectionDef>;
 
   const flat = spec.blocks.flatMap((b) =>
-    Array.from({ length: b.rows }, () => ({ section: b.section, seats: b.seats, aisles: b.aislesAfter })),
+    Array.from({ length: b.rows }, () => ({
+      section: b.section,
+      seats: b.seats,
+      aisles: b.aislesAfter,
+      missingSeats: b.missingSeats,
+      curveRadius: b.curveRadius,
+    })),
   );
   const total = flat.length;
   const rows: RowDef[] = [];
@@ -90,7 +114,16 @@ export function createAuditorium(spec: AuditoriumSpec): AuditoriumConfig {
       z = p.z + (p.section === r.section ? cp : (pp + cp) / 2 + spec.sectionGap);
       riser = requiredRiser(p, z, sections[r.section], sections[p.section], spec.screen.bottomY);
     }
-    rows.push({ label, section: r.section, seatCount: r.seats, aislesAfter: r.aisles, z, riser });
+    rows.push({
+      label,
+      section: r.section,
+      seatCount: r.seats,
+      aislesAfter: r.aisles,
+      missingSeats: r.missingSeats,
+      curveRadius: r.curveRadius,
+      z,
+      riser,
+    });
   });
 
   const maxRowWidth = Math.max(
@@ -105,11 +138,21 @@ export function createAuditorium(spec: AuditoriumSpec): AuditoriumConfig {
     id: spec.id,
     name: spec.name,
     cinemaId: spec.cinemaId,
+    screenNumber: spec.screenNumber ?? 1,
+    country: spec.country ?? 'India',
+    city: spec.city,
+    archShape: spec.archShape ?? 'rectangular',
+    layoutSource: spec.layoutSource ?? 'CALIBRATED_TEMPLATE',
+    lastVerifiedAt: spec.lastVerifiedAt ?? '2026-11-12',
     verificationStatus: spec.verificationStatus ?? 'ESTIMATED_PROTOTYPE_LAYOUT',
     verificationNotes:
       spec.verificationNotes ??
       'Estimated configurable auditorium layout for seat-perspective preview. Exact physical seat counts and room dimensions require a venue floorplan.',
-    dims: { width, length: Math.ceil(last.z + 3), height: Math.ceil(last.riser + 5) },
+    dims: {
+      width: Math.max(width, Math.ceil(spec.screen.width + 2)),
+      length: Math.ceil(last.z + 3),
+      height: Math.max(Math.ceil(last.riser + 5), Math.ceil(spec.screen.bottomY + spec.screen.height + 1.5)),
+    },
     screen: spec.screen,
     aisleWidth: spec.aisleWidth,
     sections,
@@ -178,3 +221,72 @@ export const grandSpec: AuditoriumSpec = {
 
 export const referenceAuditorium: AuditoriumConfig = createAuditorium(referenceSpec);
 export const grandAuditorium: AuditoriumConfig = createAuditorium(grandSpec);
+
+/**
+ * Curved IMAX / PLF Auditorium (286 seats, steep stadium rake, curved seating rows, 19m × 9.6m tall screen)
+ */
+export const imaxCurvedSpec: AuditoriumSpec = {
+  id: 'imax-curved-286',
+  name: 'IMAX Laser Auditorium (Curved Stadium Layout)',
+  screenNumber: 1,
+  archShape: 'imax',
+  layoutSource: 'CALIBRATED_TEMPLATE',
+  verificationStatus: 'ESTIMATED_PROTOTYPE_LAYOUT',
+  verificationNotes:
+    'Curved large-format IMAX stadium configuration (19.0m × 9.6m screen, 26m row curvature radius, inward-angled seats). Labelled as an estimated prototype layout until venue CAD measurements are imported.',
+  screen: { width: 19, height: 9.6, bottomY: 1.1 },
+  firstRowZ: 6.2,
+  sectionGap: 0.55,
+  aisleWidth: 1.0,
+  sideAisle: 1.8,
+  blocks: [
+    { section: 'classic', rows: 3, seats: 20, aislesAfter: [4, 16], curveRadius: 24 },
+    { section: 'classicPlus', rows: 6, seats: 22, aislesAfter: [5, 17], curveRadius: 26 },
+    { section: 'prime', rows: 4, seats: 24, aislesAfter: [6, 18], curveRadius: 28 },
+  ],
+  sections: {
+    lounger: { price: 420, seatPitch: 0.95, rowPitch: 1.55 },
+    classic: { price: 380, seatPitch: 0.6, rowPitch: 1.1 },
+    classicPlus: { price: 460, seatPitch: 0.62, rowPitch: 1.16 },
+    prime: { price: 580, seatPitch: 0.68, rowPitch: 1.28 },
+  },
+};
+
+/**
+ * Boutique Luxury Recliner Lounge Auditorium (64 seats, wide twin-recliner pairs)
+ */
+export const boutiqueReclinerSpec: AuditoriumSpec = {
+  id: 'boutique-recliner-64',
+  name: 'Insignia / Luxe Recliner Suite (Estimated Layout)',
+  screenNumber: 3,
+  archShape: 'recliner_lounge',
+  layoutSource: 'CALIBRATED_TEMPLATE',
+  verificationStatus: 'ESTIMATED_PROTOTYPE_LAYOUT',
+  verificationNotes:
+    'Luxury 64-seat all-recliner boutique auditorium with wide 1.05m seat pitch and twin-pod aisles. Labelled as an estimated prototype layout.',
+  screen: { width: 9.2, height: 4.1, bottomY: 1.4 },
+  firstRowZ: 4.8,
+  sectionGap: 0.6,
+  aisleWidth: 0.85,
+  sideAisle: 1.4,
+  blocks: [
+    { section: 'lounger', rows: 2, seats: 10, aislesAfter: [2, 8] },
+    { section: 'prime', rows: 4, seats: 11, aislesAfter: [2, 9] },
+  ],
+  sections: {
+    lounger: { price: 520, seatPitch: 1.0, rowPitch: 1.75 },
+    classic: { price: 420, seatPitch: 0.85, rowPitch: 1.5 },
+    classicPlus: { price: 480, seatPitch: 0.92, rowPitch: 1.6 },
+    prime: { price: 640, seatPitch: 1.05, rowPitch: 1.85 },
+  },
+};
+
+export const imaxCurvedAuditorium: AuditoriumConfig = createAuditorium(imaxCurvedSpec);
+export const boutiqueReclinerAuditorium: AuditoriumConfig = createAuditorium(boutiqueReclinerSpec);
+
+export const AUDITORIUM_TEMPLATES: Record<string, AuditoriumConfig> = {
+  [referenceAuditorium.id]: referenceAuditorium,
+  [grandAuditorium.id]: grandAuditorium,
+  [imaxCurvedAuditorium.id]: imaxCurvedAuditorium,
+  [boutiqueReclinerAuditorium.id]: boutiqueReclinerAuditorium,
+};

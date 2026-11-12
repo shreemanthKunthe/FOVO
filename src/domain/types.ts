@@ -30,14 +30,40 @@ export interface RowDef {
   z: number;
   /** Floor elevation of the row (m). */
   riser: number;
+  /** Optional horizontal radius of curvature (m) for curved / IMAX rows. */
+  curveRadius?: number;
 }
+
+export type AuditoriumArchShape =
+  | 'rectangular'
+  | 'curved'
+  | 'imax'
+  | 'recliner_lounge'
+  | 'irregular';
+
+export type LayoutSourceType =
+  | 'VISTA_CONNECT_API'
+  | 'OPERATOR_CAD_SURVEY'
+  | 'IMPORTED_JSON_LAYOUT'
+  | 'CALIBRATED_TEMPLATE';
+
+export type AuditoriumVerificationStatus =
+  | 'VERIFIED_LAYOUT'
+  | 'VISTA_GRID_CALIBRATED'
+  | 'ESTIMATED_PROTOTYPE_LAYOUT';
 
 export interface AuditoriumConfig {
   id: string;
   name: string;
   cinemaId?: string;
-  /** Clearly distinguishes verified floorplans from estimated configurations. */
-  verificationStatus?: 'VERIFIED_LAYOUT' | 'ESTIMATED_PROTOTYPE_LAYOUT';
+  screenNumber?: number;
+  country?: string;
+  city?: string;
+  archShape?: AuditoriumArchShape;
+  layoutSource?: LayoutSourceType;
+  lastVerifiedAt?: string;
+  /** Clearly distinguishes verified floorplans from Vista-calibrated or estimated configurations. */
+  verificationStatus?: AuditoriumVerificationStatus;
   verificationNotes?: string;
   dims: { width: number; length: number; height: number };
   /** Screen centred on x = 0, on the plane z = 0. */
@@ -56,14 +82,35 @@ export interface AuditoriumConfig {
  */
 export type DataVerificationTier = 'LIVE_VERIFIED' | 'MANUALLY_VERIFIED' | 'DEMO_DATA';
 
+export type CinemaDiscoverySource =
+  | 'GOOGLE_PLACES_NEW'
+  | 'OSM_OVERPASS_LIVE'
+  | 'VERIFIED_REGISTRY';
+
+export type SeatMapProviderType =
+  | 'VISTA_CONNECT'
+  | 'VERIFIED_SURVEY'
+  | 'IMPORTED_JSON'
+  | 'CALIBRATED_MODEL'
+  | 'NONE';
+
+export interface ExternalCinemaIds {
+  googlePlaceId?: string;
+  osmId?: string;
+  vistaCinemaId?: string;
+  movieGluCinemaId?: string;
+}
+
 export interface CityRecord {
   id: string;
   name: string;
   alternateName?: string;
   state: string;
   country: string;
+  countryCode?: string;
   coordinates: { lat: number; lng: number };
   isPrimaryMarket: boolean;
+  defaultLanguages?: string[];
 }
 
 export interface BookingProviderInfo {

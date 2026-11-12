@@ -18,22 +18,29 @@ export function ShowSummary() {
     <div className="summary">
       <div className="summary-badges">
         <span className="eyebrow-pill">{show.cinema.city.toUpperCase()}</span>
-        <span className="verify-badge estimated">
+        <span
+          className={
+            'verify-badge ' +
+            (show.config.verificationStatus === 'VERIFIED_LAYOUT' ? 'verified' : 'estimated')
+          }
+        >
           {show.config.verificationStatus === 'VERIFIED_LAYOUT'
             ? 'VERIFIED LAYOUT'
-            : 'ESTIMATED PROTOTYPE LAYOUT'}
+            : show.config.verificationStatus === 'VISTA_GRID_CALIBRATED'
+              ? 'VISTA SEATPLAN CALIBRATED'
+              : 'ESTIMATED PROTOTYPE LAYOUT'}
         </span>
       </div>
       <strong>{show.movie.title}</strong>
       <span className="muted">
-        {show.cinema.name} · {show.cinema.format}
+        {show.cinema.name} · {show.config.name}
       </span>
       <span className="muted">{show.cinema.address}</span>
       <span className="muted">
         {when} · {show.time} ({show.movie.language})
       </span>
       <button className="link" onClick={() => go('showtimes')}>
-        Change cinema or showtime
+        Change cinema, auditorium or showtime
       </button>
     </div>
   );
@@ -43,6 +50,7 @@ export function SeatSelection() {
   const show = useShow();
   const selectedId = useBooking((s) => s.selectedSeatId);
   const selectSeat = useBooking((s) => s.selectSeat);
+  const setAuditorium = useBooking((s) => s.setAuditorium);
   const go = useBooking((s) => s.go);
 
   // Warm the 3D chunk while the user is choosing a seat so entering the preview is instant.
@@ -57,9 +65,43 @@ export function SeatSelection() {
       <section className="card map-card">
         <header className="map-head">
           <div className="map-head-top">
-            <h2>{show.config.name}</h2>
-            <span className="verify-badge demo">AVAILABILITY: DEMO DATA</span>
+            <div>
+              <h2>{show.config.name}</h2>
+              <span className="muted">
+                Screen {show.config.screen.width.toFixed(1)}m × {show.config.screen.height.toFixed(1)}m · Room{' '}
+                {show.config.dims.width}m × {show.config.dims.length}m · {show.seats.length} seats ({show.config.rows.length} rows)
+              </span>
+            </div>
+            <span
+              className={
+                'verify-badge ' +
+                (show.availabilitySource === 'VISTA_SESSION_SEATPLAN' ? 'verified' : 'demo')
+              }
+            >
+              {show.availabilitySource === 'VISTA_SESSION_SEATPLAN'
+                ? 'AVAILABILITY: VISTA SEATPLAN'
+                : 'AVAILABILITY: DEMO DATA'}
+            </span>
           </div>
+
+          {show.cinema.auditoriums.length > 1 && (
+            <div className="auditorium-SubTabs" role="tablist" aria-label="Switch auditorium screen">
+              <span className="muted">Auditorium:</span>
+              {show.cinema.auditoriums.map((audi) => (
+                <button
+                  key={audi.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={show.config.id === audi.id}
+                  className={'city-pill' + (show.config.id === audi.id ? ' on' : '')}
+                  onClick={() => setAuditorium(audi.id)}
+                >
+                  {audi.name}
+                </button>
+              ))}
+            </div>
+          )}
+
           <span className="muted">
             {left} of {show.seats.length} seats available · scroll or use + / − to zoom, drag to pan
           </span>

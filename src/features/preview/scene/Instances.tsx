@@ -6,15 +6,16 @@ const _q = new Quaternion();
 const _s = new Vector3();
 const _e = new Euler();
 
-/** Writes position / x-rotation / scale into a matrix. */
+/** Writes position / x-rotation / y-rotation / scale into a matrix. */
 export function compose(
   m: Matrix4,
   pos: [number, number, number],
   scale: [number, number, number],
   rx = 0,
+  ry = 0,
 ): Matrix4 {
   _p.set(pos[0], pos[1], pos[2]);
-  _q.setFromEuler(_e.set(rx, 0, 0));
+  _q.setFromEuler(_e.set(rx, ry, 0, 'YXZ'));
   _s.set(scale[0], scale[1], scale[2]);
   return m.compose(_p, _q, _s);
 }

@@ -6,6 +6,10 @@
     {
       "source": "/api/tmdb/:path*",
       "destination": "/api/tmdb?endpoint=:path*"
+    },
+    {
+      "source": "/api/places/:path*",
+      "destination": "/api/places?endpoint=:path*"
     }
   ]
 }
